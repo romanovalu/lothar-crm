@@ -1,296 +1,229 @@
 "use client";
 
-import {
-  ArrowUpRight,
-  Download,
-  Plus,
-  Search,
-  ShieldCheck,
-  TrendingUp
-} from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowUpRight, Download, Plus, Search, TrendingUp, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input, Textarea } from "@/components/ui/input";
-import { DocumentActions } from "@/components/crm/document-actions";
+import { Input } from "@/components/ui/input";
 import { NuevaOperacionModal } from "@/components/crm/nueva-operacion-modal";
-import { clientes, operaciones, productos } from "@/lib/sample-data";
+import { createClient } from "@/lib/supabase";
 import { exportWorkbook } from "@/lib/export-xlsx";
 import { formatCurrency } from "@/lib/utils";
+import type { Operacion, Cliente, Producto } from "@/types/domain";
 
-const steps = ["Cliente", "Productos", "Comercial", "Contrato", "Patentamiento", "Resumen"];
 const estados = ["Cotizacion", "Reservada", "Vendida", "Entregada", "Cancelada"];
+const estadoColors: Record<string, string> = {
+  Cotizacion: "bg-blue-100 text-blue-700",
+  Reservada: "bg-orange-100 text-orange-700",
+  Vendida: "bg-lothar-yellow text-lothar-black",
+  Entregada: "bg-green-100 text-green-700",
+  Cancelada: "bg-neutral-100 text-neutral-500",
+};
 
 export function Dashboard() {
+  const [operaciones, setOperaciones] = useState<Operacion[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const operacion = operaciones[0];
 
-  const filteredOperations = useMemo(() => {
-    const normalized = query.toLowerCase();
-    return operaciones.filter((item) => {
-      const haystack = [
-        item.numero_operacion,
-        item.cliente?.nombre_razon_social,
-        item.cliente?.cuit,
-        item.items.map((operationItem) => operationItem.producto?.modelo).join(" ")
-      ]
-        .join(" ")
-        .toLowerCase();
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    const supabase = createClient();
+    const [{ data: ops }, { data: cls }, { data: prods }] = await Promise.all([
+      supabase
+        .from("operaciones")
+        .select(`*, cliente:clientes(*), items:operacion_items(*, producto:productos(*)), patentamiento:patentamientos(*)`)
+        .order("created_at", { ascending: false }),
+      supabase.from("clientes").select("*").is("deleted_at", null).order("nombre_razon_social"),
+      supabase.from("productos").select("*").eq("activo", true).is("deleted_at", null).order("marca"),
+    ]);
+    setOperaciones((ops as Operacion[]) ?? []);
+    setClientes((cls as Cliente[]) ?? []);
+    setProductos((prods as Producto[]) ?? []);
+    setLoading(false);
+  }, []);
 
-      return haystack.includes(normalized);
-    });
-  }, [query]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const counts = estados.map((estado) => ({
+  const filteredOps = useMemo(() => {
+    const q = query.toLowerCase();
+    return operaciones.filter(op =>
+      [op.numero_operacion, op.cliente?.nombre_razon_social, op.cliente?.cuit,
+        op.items?.map(i => i.producto?.modelo).join(" ")].join(" ").toLowerCase().includes(q)
+    );
+  }, [query, operaciones]);
+
+  const counts = estados.map(estado => ({
     estado,
-    value: operaciones.filter((item) => item.estado === estado).length
+    value: operaciones.filter(op => op.estado === estado).length,
   }));
 
   const totalVendido = operaciones
-    .filter((item) => item.estado === "Vendida")
-    .reduce((acc, item) => acc + item.total, 0);
+    .filter(op => op.estado === "Vendida")
+    .reduce((acc, op) => acc + op.total, 0);
+
+  // Operaciones por vendedor
+  const porVendedor = useMemo(() => {
+    const map: Record<string, number> = {};
+    operaciones.forEach(op => {
+      if (op.vendedor_nombre) map[op.vendedor_nombre] = (map[op.vendedor_nombre] ?? 0) + 1;
+    });
+    const total = operaciones.length || 1;
+    return Object.entries(map).map(([nombre, cant]) => ({ nombre, cant, pct: Math.round((cant / total) * 100) }));
+  }, [operaciones]);
 
   return (
     <>
-    {showModal && (
-      <NuevaOperacionModal
-        onClose={() => setShowModal(false)}
-        onCreated={() => { setShowModal(false); window.location.reload(); }}
-      />
-    )}
-    <main className="min-h-screen flex-1 overflow-auto pb-24 lg:pb-0">
-      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-neutral-500">Lothar Maquinaria</p>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
-              CRM Comercial
-            </h1>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-              <Input
-                className="w-full pl-9 sm:w-80"
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Cliente, CUIT, operacion o modelo"
-                value={query}
-              />
+      {showModal && (
+        <NuevaOperacionModal
+          onClose={() => setShowModal(false)}
+          onCreated={() => { setShowModal(false); fetchAll(); }}
+        />
+      )}
+      <main className="min-h-screen flex-1 overflow-auto pb-24 lg:pb-0">
+        <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+          <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-neutral-500">Lothar Maquinaria</p>
+              <h1 className="mt-2 text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">CRM Comercial</h1>
             </div>
-            <Button type="button" onClick={() => setShowModal(true)}>
-              <Plus className="h-4 w-4" />
-              Nueva operacion
-            </Button>
-          </div>
-        </header>
-
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          {counts.map((item) => (
-            <Card className="p-4" key={item.estado}>
-              <p className="text-xs font-semibold uppercase text-neutral-500">{item.estado}</p>
-              <div className="mt-3 flex items-end justify-between">
-                <strong className="text-3xl font-bold text-neutral-950">{item.value}</strong>
-                <ArrowUpRight className="h-5 w-5 text-neutral-400" />
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                <Input className="w-full pl-9 sm:w-80" placeholder="Cliente, CUIT, operación o modelo"
+                  value={query} onChange={e => setQuery(e.target.value)} />
               </div>
-            </Card>
-          ))}
-        </section>
+              <Button type="button" onClick={() => setShowModal(true)}>
+                <Plus className="h-4 w-4" /> Nueva operación
+              </Button>
+            </div>
+          </header>
 
-        <section className="grid gap-6 xl:grid-cols-[1fr_360px]">
-          <div className="space-y-6">
-            <Card className="p-0">
-              <div className="border-b border-neutral-200 p-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h2 className="text-lg font-bold text-neutral-950">Nueva operacion</h2>
-                    <p className="mt-1 text-sm text-neutral-500">
-                      Carga unica para alimentar proforma, boleto, patentamiento y entrega.
-                    </p>
-                  </div>
-                  <span className="inline-flex h-8 items-center gap-2 rounded-md bg-neutral-100 px-3 text-xs font-semibold text-neutral-600">
-                    <ShieldCheck className="h-4 w-4" />
-                    Una fuente de datos
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 border-b border-neutral-200 p-5 sm:grid-cols-3 xl:grid-cols-6">
-                {steps.map((step, index) => (
-                  <button
-                    className={`h-10 rounded-md text-sm font-semibold ${
-                      index === 0 ? "bg-lothar-yellow text-lothar-black" : "bg-neutral-100 text-neutral-600"
-                    }`}
-                    key={step}
-                    type="button"
-                  >
-                    {step}
-                  </button>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-neutral-300" />
+            </div>
+          ) : (
+            <>
+              {/* Contadores por estado */}
+              <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                {counts.map(item => (
+                  <Card className="p-4" key={item.estado}>
+                    <p className="text-xs font-semibold uppercase text-neutral-500">{item.estado}</p>
+                    <div className="mt-3 flex items-end justify-between">
+                      <strong className="text-3xl font-bold text-neutral-950">{item.value}</strong>
+                      <ArrowUpRight className="h-5 w-5 text-neutral-400" />
+                    </div>
+                  </Card>
                 ))}
-              </div>
+              </section>
 
-              <div className="grid gap-5 p-5 lg:grid-cols-2">
-                <label className="space-y-2 text-sm font-semibold text-neutral-700">
-                  Cliente
-                  <Input defaultValue={operacion.cliente?.nombre_razon_social} />
-                </label>
-                <label className="space-y-2 text-sm font-semibold text-neutral-700">
-                  CUIT
-                  <Input defaultValue={operacion.cliente?.cuit} />
-                </label>
-                <label className="space-y-2 text-sm font-semibold text-neutral-700">
-                  Provincia
-                  <Input defaultValue={operacion.cliente?.provincia} />
-                </label>
-                <label className="space-y-2 text-sm font-semibold text-neutral-700">
-                  Localidad
-                  <Input defaultValue={operacion.cliente?.localidad} />
-                </label>
-              </div>
-
-              <div className="overflow-x-auto border-y border-neutral-200">
-                <table className="w-full min-w-[680px] text-left text-sm">
-                  <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
-                    <tr>
-                      <th className="px-5 py-3">Cantidad</th>
-                      <th className="px-5 py-3">Descripcion</th>
-                      <th className="px-5 py-3">Precio</th>
-                      <th className="px-5 py-3">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {operacion.items.map((item) => (
-                      <tr className="border-t border-neutral-200" key={item.id}>
-                        <td className="px-5 py-4 font-semibold">{item.cantidad}</td>
-                        <td className="px-5 py-4">{item.descripcion_manual}</td>
-                        <td className="px-5 py-4">{formatCurrency(item.precio_unitario, operacion.moneda)}</td>
-                        <td className="px-5 py-4 font-bold">{formatCurrency(item.subtotal, operacion.moneda)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="grid gap-5 p-5 lg:grid-cols-[1fr_280px]">
-                <label className="space-y-2 text-sm font-semibold text-neutral-700">
-                  Forma de pago
-                  <Textarea defaultValue={operacion.forma_pago} />
-                </label>
-                <div className="rounded-lg bg-neutral-50 p-4">
-                  <p className="text-xs font-semibold uppercase text-neutral-500">Total operacion</p>
-                  <p className="mt-2 text-3xl font-bold text-neutral-950">
-                    {formatCurrency(operacion.total, operacion.moneda)}
-                  </p>
-                  <p className="mt-2 text-sm text-neutral-500">
-                    Descuento aplicado: {formatCurrency(operacion.descuento, operacion.moneda)}
-                  </p>
+              <section className="grid gap-6 xl:grid-cols-[1fr_360px]">
+                <div className="space-y-6">
+                  {/* Últimas operaciones */}
+                  <Card>
+                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h2 className="text-lg font-bold text-neutral-950">Últimas operaciones</h2>
+                        <p className="mt-1 text-sm text-neutral-500">Actividad reciente del equipo comercial.</p>
+                      </div>
+                      <Button onClick={() => exportWorkbook({
+                        clientes, operaciones, productos,
+                        patentamientos: operaciones.flatMap(op => op.patentamiento ? [op.patentamiento] : []),
+                      })} type="button" variant="outline">
+                        <Download className="h-4 w-4" /> Exportar Excel
+                      </Button>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[680px] text-left text-sm">
+                        <thead className="border-y border-neutral-200 bg-neutral-50 text-xs uppercase text-neutral-500">
+                          <tr>
+                            <th className="px-4 py-3">Operación</th>
+                            <th className="px-4 py-3">Cliente</th>
+                            <th className="px-4 py-3">Estado</th>
+                            <th className="px-4 py-3">Vendedor</th>
+                            <th className="px-4 py-3 text-right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredOps.slice(0, 20).map(op => (
+                            <tr className="border-b border-neutral-100 hover:bg-neutral-50" key={op.id}>
+                              <td className="px-4 py-4 font-mono font-semibold">{op.numero_operacion}</td>
+                              <td className="px-4 py-4">{op.cliente?.nombre_razon_social}</td>
+                              <td className="px-4 py-4">
+                                <span className={`rounded-md px-2 py-1 text-xs font-bold ${estadoColors[op.estado] ?? "bg-neutral-100"}`}>
+                                  {op.estado}
+                                </span>
+                              </td>
+                              <td className="px-4 py-4">{op.vendedor_nombre}</td>
+                              <td className="px-4 py-4 text-right font-bold">{formatCurrency(op.total, op.moneda)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {filteredOps.length === 0 && (
+                        <p className="py-10 text-center text-sm text-neutral-400">Aún no hay operaciones cargadas</p>
+                      )}
+                    </div>
+                  </Card>
                 </div>
-              </div>
 
-              <div className="border-t border-neutral-200 p-5">
-                <DocumentActions operacion={operacion} />
-              </div>
-            </Card>
+                <aside className="space-y-6">
+                  <Card>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase text-neutral-500">Monto vendido</p>
+                        <p className="mt-2 text-3xl font-bold text-neutral-950">{formatCurrency(totalVendido, "USD")}</p>
+                      </div>
+                      <div className="grid h-11 w-11 place-items-center rounded-md bg-lothar-yellow">
+                        <TrendingUp className="h-5 w-5" />
+                      </div>
+                    </div>
+                  </Card>
 
-            <Card>
-              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-bold text-neutral-950">Ultimas operaciones</h2>
-                  <p className="mt-1 text-sm text-neutral-500">Resultado del buscador global y actividad reciente.</p>
-                </div>
-                <Button
-                  onClick={() =>
-                    exportWorkbook({
-                      clientes,
-                      operaciones,
-                      productos,
-                      patentamientos: operaciones.flatMap((item) => (item.patentamiento ? [item.patentamiento] : []))
-                    })
-                  }
-                  type="button"
-                  variant="outline"
-                >
-                  <Download className="h-4 w-4" />
-                  Exportar Excel
-                </Button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] text-left text-sm">
-                  <thead className="border-y border-neutral-200 bg-neutral-50 text-xs uppercase text-neutral-500">
-                    <tr>
-                      <th className="px-4 py-3">Operacion</th>
-                      <th className="px-4 py-3">Cliente</th>
-                      <th className="px-4 py-3">Estado</th>
-                      <th className="px-4 py-3">Vendedor</th>
-                      <th className="px-4 py-3 text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredOperations.map((item) => (
-                      <tr className="border-b border-neutral-100" key={item.id}>
-                        <td className="px-4 py-4 font-semibold">{item.numero_operacion}</td>
-                        <td className="px-4 py-4">{item.cliente?.nombre_razon_social}</td>
-                        <td className="px-4 py-4">
-                          <span className="rounded-md bg-lothar-yellow px-2 py-1 text-xs font-bold text-lothar-black">
-                            {item.estado}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4">{item.vendedor_nombre}</td>
-                        <td className="px-4 py-4 text-right font-bold">{formatCurrency(item.total, item.moneda)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </div>
+                  {porVendedor.length > 0 && (
+                    <Card>
+                      <h2 className="text-base font-bold text-neutral-950">Operaciones por vendedor</h2>
+                      <div className="mt-4 space-y-4">
+                        {porVendedor.map(v => (
+                          <div key={v.nombre}>
+                            <div className="mb-1.5 flex justify-between text-sm">
+                              <span className="font-semibold">{v.nombre}</span>
+                              <span className="text-neutral-500">{v.cant} ({v.pct}%)</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-neutral-100">
+                              <div className="h-2 rounded-full bg-lothar-yellow transition-all" style={{ width: `${v.pct}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  )}
 
-          <aside className="space-y-6">
-            <Card>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase text-neutral-500">Monto vendido</p>
-                  <p className="mt-2 text-3xl font-bold text-neutral-950">{formatCurrency(totalVendido, "USD")}</p>
-                </div>
-                <div className="grid h-11 w-11 place-items-center rounded-md bg-lothar-yellow">
-                  <TrendingUp className="h-5 w-5" />
-                </div>
-              </div>
-            </Card>
-
-            <Card>
-              <h2 className="text-lg font-bold text-neutral-950">Operaciones por vendedor</h2>
-              <div className="mt-5 space-y-4">
-                <div>
-                  <div className="mb-2 flex justify-between text-sm">
-                    <span className="font-semibold">Roman Lopez</span>
-                    <span className="text-neutral-500">100%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-neutral-100">
-                    <div className="h-2 rounded-full bg-lothar-yellow" style={{ width: "100%" }} />
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <Card>
-              <h2 className="text-lg font-bold text-neutral-950">Productos activos</h2>
-              <div className="mt-4 space-y-3">
-                {productos.map((producto) => (
-                  <div className="rounded-md border border-neutral-200 p-3" key={producto.id}>
-                    <p className="font-semibold text-neutral-950">
-                      {producto.marca} {producto.modelo}
-                    </p>
-                    <p className="mt-1 text-sm text-neutral-500">{producto.descripcion}</p>
-                    <p className="mt-2 text-sm font-bold">{formatCurrency(producto.precio_lista, producto.moneda)}</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </aside>
-        </section>
-      </div>
-    </main>
+                  {productos.length > 0 && (
+                    <Card>
+                      <h2 className="text-base font-bold text-neutral-950">Productos activos</h2>
+                      <div className="mt-4 space-y-3">
+                        {productos.slice(0, 5).map(producto => (
+                          <div className="rounded-md border border-neutral-200 p-3" key={producto.id}>
+                            <p className="font-semibold text-neutral-950">{producto.marca} {producto.modelo}</p>
+                            {producto.descripcion && (
+                              <p className="mt-0.5 text-xs text-neutral-500 line-clamp-1">{producto.descripcion}</p>
+                            )}
+                            <p className="mt-1.5 text-sm font-bold">{formatCurrency(producto.precio_lista, producto.moneda)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  )}
+                </aside>
+              </section>
+            </>
+          )}
+        </div>
+      </main>
     </>
   );
 }
