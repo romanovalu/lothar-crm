@@ -19,10 +19,24 @@ export default function LoginPage() {
     setError(null);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       setError("Email o contraseña incorrectos.");
+      setLoading(false);
+      return;
+    }
+
+    // Verificar si el usuario está aprobado
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("aprobado")
+      .eq("id", data.user.id)
+      .single();
+
+    if (!profile?.aprobado) {
+      await supabase.auth.signOut();
+      setError("Tu cuenta está pendiente de aprobación por un administrador.");
       setLoading(false);
       return;
     }
@@ -108,8 +122,9 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="mt-6 text-center text-xs text-neutral-600">
-          Para crear tu cuenta, contactá al administrador del sistema.
+        <p className="mt-6 text-center text-xs text-neutral-500">
+          ¿No tenés cuenta?{" "}
+          <a href="/register" className="text-lothar-yellow hover:underline">Solicitá acceso</a>
         </p>
       </div>
     </div>

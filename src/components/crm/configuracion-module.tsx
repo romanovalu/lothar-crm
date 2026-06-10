@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Loader2, Pencil, X, ShieldCheck, UserCog, UserPlus } from "lucide-react";
+import { Check, Loader2, Pencil, X, ShieldCheck, UserCog, UserPlus, Clock } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { AREA_LABELS } from "@/types/tickets";
 import type { TicketArea } from "@/types/tickets";
@@ -11,6 +11,7 @@ interface Profile {
   nombre: string;
   role: "administrador" | "vendedor";
   area_responsable: string | null;
+  aprobado: boolean;
   email?: string;
 }
 
@@ -269,15 +270,12 @@ export function ConfiguracionModule() {
       setCurrentUserRole(me?.role ?? "vendedor");
     }
 
-    // Obtener perfiles + email de auth.users via join
     const { data } = await supabase
       .from("profiles")
-      .select("id, nombre, role, area_responsable")
-      .is("deleted_at", null)
+      .select("id, nombre, role, area_responsable, aprobado")
+      .order("aprobado", { ascending: true })
       .order("nombre");
 
-    // Para obtener emails necesitamos usar la función RPC o la tabla auth.users
-    // Solo admins tienen acceso, usamos lo que tenemos
     setProfiles((data as Profile[]) ?? []);
     setLoading(false);
   }, []);
@@ -286,8 +284,23 @@ export function ConfiguracionModule() {
 
   const esAdmin = currentUserRole === "administrador";
 
+  const pendientes = profiles.filter(p => !p.aprobado);
+  const aprobados = profiles.filter(p => p.aprobado);
+
+  async function aprobarUsuario(id: string) {
+    const supabase = createClient();
+    await supabase.from("profiles").update({ aprobado: true }).eq("id", id);
+    fetchProfiles();
+  }
+
+  async function rechazarUsuario(id: string) {
+    const supabase = createClient();
+    await supabase.from("profiles").delete().eq("id", id);
+    fetchProfiles();
+  }
+
   // Resumen de cobertura de áreas
-  const areasConResponsable = new Set(profiles.map(p => p.area_responsable).filter(Boolean));
+  const areasConResponsable = new Set(aprobados.map(p => p.area_responsable).filter(Boolean));
   const areasSinCobertura = (Object.keys(AREA_LABELS) as TicketArea[]).filter(a => !areasConResponsable.has(a));
 
   return (
@@ -314,6 +327,42 @@ export function ConfiguracionModule() {
               Asigná un responsable editando el usuario correspondiente.
             </p>
           </div>
+        )}
+
+        {/* Usuarios pendientes de aprobación */}
+        {esAdmin && pendientes.length > 0 && (
+          <section>
+            <div className="mb-3 flex items-center gap-2">
+              <Clock className="h-4 w-4 text-orange-500" />
+              <h2 className="text-base font-bold text-neutral-900">Solicitudes pendientes</h2>
+              <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-bold text-orange-600">{pendientes.length}</span>
+            </div>
+            <div className="rounded-xl border border-orange-200 bg-white overflow-hidden">
+              {pendientes.map(p => (
+                <div key={p.id} className="flex flex-col gap-3 border-b border-neutral-100 px-5 py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-orange-100 text-sm font-black text-orange-600">
+                      {p.nombre[0]?.toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-neutral-900">{p.nombre}</p>
+                      <p className="text-xs text-neutral-400">Pendiente de aprobación</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => aprobarUsuario(p.id)}
+                      className="flex items-center gap-1.5 rounded-lg bg-green-100 px-3 py-1.5 text-xs font-bold text-green-700 transition hover:bg-green-200">
+                      <Check className="h-3.5 w-3.5" /> Aprobar
+                    </button>
+                    <button onClick={() => rechazarUsuario(p.id)}
+                      className="flex items-center gap-1.5 rounded-lg bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 transition hover:bg-red-200">
+                      <X className="h-3.5 w-3.5" /> Rechazar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Usuarios */}
@@ -343,10 +392,10 @@ export function ConfiguracionModule() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-6 w-6 animate-spin text-neutral-300" />
               </div>
-            ) : profiles.length === 0 ? (
+            ) : aprobados.length === 0 ? (
               <div className="py-12 text-center text-sm text-neutral-400">No hay usuarios.</div>
             ) : (
-              profiles.map(p => (
+              aprobados.map(p => (
                 esAdmin ? (
                   <EditUserRow
                     key={p.id}
