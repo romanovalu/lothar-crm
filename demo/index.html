@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lothar CRM Comercial</title>
+    <style>
+      :root {
+        --yellow: #f5d21f;
+        --black: #111111;
+        --gray: #f5f5f5;
+        --line: #e7e7e7;
+        --muted: #666666;
+        --white: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--gray);
+        color: var(--black);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 280px 1fr;
+      }
+
+      .sidebar {
+        background: var(--white);
+        border-right: 1px solid var(--line);
+        padding: 24px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .mark {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--yellow);
+        font-weight: 900;
+        font-size: 20px;
+      }
+
+      .brand strong {
+        display: block;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+      }
+
+      .brand span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .menu {
+        display: grid;
+        gap: 6px;
+      }
+
+      .menu a {
+        color: #606060;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 12px 14px;
+        border-radius: 8px;
+      }
+
+      .menu a.active {
+        background: var(--yellow);
+        color: var(--black);
+      }
+
+      .cloud {
+        margin-top: auto;
+        border: 1px solid var(--line);
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 16px;
+      }
+
+      .cloud small {
+        color: var(--muted);
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .cloud p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .main {
+        padding: 32px;
+        overflow: auto;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .eyebrow {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        margin-top: 8px;
+        font-size: clamp(26px, 4vw, 36px);
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .search,
+      input,
+      textarea {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--white);
+        color: var(--black);
+        font: inherit;
+      }
+
+      .search {
+        width: min(360px, 100%);
+        height: 42px;
+        padding: 0 14px;
+      }
+
+      .btn {
+        height: 42px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--yellow);
+        color: var(--black);
+        padding: 0 16px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        margin-bottom: 24px;
+      }
+
+      .card {
+        background: var(--white);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 12px 40px rgba(17, 17, 17, 0.06);
+      }
+
+      .stat {
+        padding: 18px;
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .stat strong {
+        display: block;
+        margin-top: 10px;
+        font-size: 32px;
+      }
+
+      .content {
+        grid-template-columns: 1fr 360px;
+        align-items: start;
+      }
+
+      .panel-head,
+      .panel-body,
+      .panel-foot {
+        padding: 20px;
+      }
+
+      .panel-head,
+      .panel-foot {
+        border-bottom: 1px solid var(--line);
+      }
+
+      .panel-foot {
+        border-top: 1px solid var(--line);
+        border-bottom: 0;
+      }
+
+      .panel-head p {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+        padding: 20px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .step {
+        background: #f0f0f0;
+        border-radius: 8px;
+        padding: 11px 8px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .step.active {
+        background: var(--yellow);
+      }
+
+      .form {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 800;
+        color: #444444;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        outline: none;
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        padding: 14px 20px;
+        border-top: 1px solid var(--line);
+        text-align: left;
+      }
+
+      th {
+        background: #fafafa;
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      .commercial {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: 20px;
+      }
+
+      .total {
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 18px;
+      }
+
+      .total span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .total strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 30px;
+      }
+
+      .docs {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+      }
+
+      .doc {
+        min-height: 48px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--black);
+        color: var(--white);
+        padding: 12px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .side {
+        display: grid;
+        gap: 16px;
+      }
+
+      .side .card {
+        padding: 20px;
+      }
+
+      .side h2 {
+        font-size: 18px;
+      }
+
+      .money {
+        margin-top: 10px;
+        font-size: 32px;
+        font-weight: 900;
+      }
+
+      .machine {
+        margin-top: 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .machine p {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .bar {
+        margin-top: 12px;
+        height: 8px;
+        border-radius: 999px;
+        background: #eeeeee;
+      }
+
+      .bar div {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--yellow);
+      }
+
+      @media (max-width: 1100px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        .content,
+        .commercial {
+          grid-template-columns: 1fr;
+        }
+
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .docs,
+        .steps {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 720px) {
+        .main {
+          padding: 20px 14px 88px;
+        }
+
+        .topbar,
+        .actions {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .stats,
+        .form {
+          grid-template-columns: 1fr;
+        }
+
+        th,
+        td {
+          padding: 12px;
+        }
+
+        .table-wrap {
+          overflow-x: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="mark">L</div>
+          <div>
+            <strong>Lothar</strong>
+            <span>CRM Comercial</span>
+          </div>
+        </div>
+
+        <nav class="menu">
+          <a class="active" href="#">Dashboard</a>
+          <a href="#">Operaciones</a>
+          <a href="#">Clientes</a>
+          <a href="#">Maquinas</a>
+          <a href="#">Documentos</a>
+          <a href="#">Configuracion</a>
+        </nav>
+
+        <div class="cloud">
+          <small>Supabase</small>
+          <p>Datos en la nube con Auth, PostgreSQL y Storage. Sin dependencia de una computadora local.</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">Lothar Maquinaria</div>
+            <h1>CRM Comercial</h1>
+          </div>
+          <div class="actions">
+            <input class="search" placeholder="Cliente, CUIT, operacion o modelo" />
+            <button class="btn">+ Nueva operacion</button>
+          </div>
+        </header>
+
+        <section class="grid stats">
+          <div class="card stat"><span>Cotizacion</span><strong>52</strong></div>
+          <div class="card stat"><span>Reservada</span><strong>14</strong></div>
+          <div class="card stat"><span>Vendida</span><strong>8</strong></div>
+          <div class="card stat"><span>Entregada</span><strong>6</strong></div>
+          <div class="card stat"><span>Cancelada</span><strong>2</strong></div>
+        </section>
+
+        <section class="grid content">
+          <div class="grid">
+            <section class="card">
+              <div class="panel-head">
+                <h2>Nueva operacion</h2>
+                <p>Carga unica para alimentar Proforma, Boleto, Patentamiento y Orden de Entrega.</p>
+              </div>
+
+              <div class="steps">
+                <div class="step active">Cliente</div>
+                <div class="step">Productos</div>
+                <div class="step">Comercial</div>
+                <div class="step">Contrato</div>
+                <div class="step">Patentamiento</div>
+                <div class="step">Resumen</div>
+              </div>
+
+              <div class="panel-body form">
+                <label>Cliente <input value="Agro Norte S.A." /></label>
+                <label>CUIT <input value="30-71234567-8" /></label>
+                <label>Provincia <input value="Cordoba" /></label>
+                <label>Localidad <input value="Jesus Maria" /></label>
+              </div>
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Cantidad</th>
+                      <th>Descripcion</th>
+                      <th>Precio</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>1</strong></td>
+                      <td>Mahindra 717H con pala frontal</td>
+                      <td>USD 100.000</td>
+                      <td><strong>USD 100.000</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="panel-body commercial">
+                <label>Forma de pago <textarea>Entrega 30% y saldo en 12 cheques mensuales.</textarea></label>
+                <div class="total">
+                  <span>Total operacion</span>
+                  <strong>USD 95.000</strong>
+                  <p>Descuento aplicado: USD 5.000</p>
+                </div>
+              </div>
+
+              <div class="panel-foot">
+                <div class="docs">
+                  <button class="doc">PROFORMA</button>
+                  <button class="doc">BOLETO</button>
+                  <button class="doc">PAT. FISICA</button>
+                  <button class="doc">PAT. JURIDICA</button>
+                  <button class="doc">ORDEN ENTREGA</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="panel-head">
+                <h2>Ultimas operaciones</h2>
+                <p>El buscador global filtra cliente, CUIT, numero de operacion y modelo de maquina.</p>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Operacion</th>
+                      <th>Cliente</th>
+                      <th>Estado</th>
+                      <th>Vendedor</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>OP-2026-0001</strong></td>
+                      <td>Agro Norte S.A.</td>
+                      <td>Vendida</td>
+                      <td>Roman Lopez</td>
+                      <td><strong>USD 95.000</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <aside class="side">
+            <section class="card">
+              <h2>Monto vendido</h2>
+              <div class="money">USD 95.000</div>
+            </section>
+
+            <section class="card">
+              <h2>Operaciones por vendedor</h2>
+              <p style="margin-top: 16px; font-weight: 800">Roman Lopez <span style="float: right; color: #666">100%</span></p>
+              <div class="bar"><div style="width: 100%"></div></div>
+            </section>
+
+            <section class="card">
+              <h2>Productos activos</h2>
+              <div class="machine">
+                <strong>Mahindra 717H</strong>
+                <p>Tractor compacto 4x4 con pala frontal.</p>
+                <strong>USD 100.000</strong>
+              </div>
+              <div class="machine">
+                <strong>Lothar Retro 320</strong>
+                <p>Retroexcavadora industrial para obra y campo.</p>
+                <strong>USD 145.000</strong>
+              </div>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      document.querySelectorAll(".doc").forEach((button) => {
+        button.addEventListener("click", () => {
+          alert(button.textContent + " generado bajo demanda desde OP-2026-0001");
+        });
+      });
+    </script>
+  </body>
+</html>

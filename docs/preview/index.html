@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Preview — Documentos Lothar CRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#111;color:#fff;height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:16px;padding:10px 20px;background:#111;border-bottom:2px solid #f5d21f;flex-shrink:0}
+.logo{display:inline-flex;align-items:center;justify-content:center;width:38px;height:26px;background:#f5d21f;color:#111;font-size:18px;font-weight:900;border:2px solid #f5d21f}
+h1{font-size:14px;font-weight:bold;letter-spacing:.1em;text-transform:uppercase;color:#f5d21f}
+.tabs{display:flex;gap:4px;flex:1;justify-content:center}
+.tab{padding:6px 16px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;border:none;background:#222;color:#aaa;transition:all .15s}
+.tab:hover{background:#333;color:#fff}
+.tab.active{background:#f5d21f;color:#111}
+.status{font-size:11px;color:#555;margin-left:auto}
+.frame-wrap{flex:1;position:relative}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:none;background:#e5e7eb}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">L</div>
+  <h1>Preview Documentos</h1>
+  <div class="tabs">
+    <button class="tab active" onclick="show(0)">Proforma</button>
+    <button class="tab" onclick="show(1)">Boleto C/V</button>
+    <button class="tab" onclick="show(2)">Patent. Física</button>
+    <button class="tab" onclick="show(3)">Patent. Jurídica</button>
+    <button class="tab" onclick="show(4)">Orden Entrega</button>
+    <button class="tab" onclick="show(5)" style="background:#1a1a1a;color:#f5d21f;border:1px solid #f5d21f">← CRM App</button>
+  </div>
+  <div class="status" id="status">Operación OP-2026-0001 · Agro Norte S.A.</div>
+</header>
+<div class="frame-wrap">
+  <iframe id="frame" src="01_proforma.html"></iframe>
+</div>
+
+<script>
+const srcs = [
+  '01_proforma.html',
+  '02_boleto_compraventa.html',
+  '03_patentamiento_fisica.html',
+  '04_patentamiento_juridica.html',
+  '05_orden_entrega.html',
+  'http://localhost:3000'
+];
+const labels = ['Proforma','Boleto C/V','Patent. Física','Patent. Jurídica','Orden Entrega','← CRM App'];
+function show(i){
+  document.getElementById('frame').src = srcs[i];
+  document.querySelectorAll('.tab').forEach((t,j)=>{
+    t.classList.toggle('active', i===j);
+  });
+}
+</script>
+</body>
+</html>
