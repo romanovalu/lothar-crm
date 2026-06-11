@@ -9,7 +9,7 @@ import type { TicketArea } from "@/types/tickets";
 interface Profile {
   id: string;
   nombre: string;
-  role: "administrador" | "vendedor";
+  role: "administrador" | "jefe_area" | "vendedor";
   area_responsable: string | null;
   aprobado: boolean;
   email?: string;
@@ -96,16 +96,21 @@ function EditUserRow({
           <select
             className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm outline-none focus:border-lothar-yellow"
             value={role}
-            onChange={e => setRole(e.target.value as "administrador" | "vendedor")}
+            onChange={e => setRole(e.target.value as "administrador" | "jefe_area" | "vendedor")}
           >
-            <option value="vendedor">Vendedor</option>
+            <option value="vendedor">Vendedor / Asistente</option>
+            <option value="jefe_area">Jefe de área</option>
             <option value="administrador">Administrador</option>
           </select>
         ) : (
           <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold
-            ${profile.role === "administrador" ? "bg-lothar-yellow text-lothar-black" : "bg-neutral-100 text-neutral-600"}`}>
+            ${profile.role === "administrador" ? "bg-lothar-yellow text-lothar-black"
+            : profile.role === "jefe_area" ? "bg-blue-100 text-blue-700"
+            : "bg-neutral-100 text-neutral-600"}`}>
             {profile.role === "administrador"
               ? <><ShieldCheck className="h-3 w-3" /> Administrador</>
+              : profile.role === "jefe_area"
+              ? <><UserCog className="h-3 w-3" /> Jefe de área</>
               : <><UserCog className="h-3 w-3" /> Vendedor</>}
           </span>
         )}
@@ -224,7 +229,8 @@ function InvitarModal({ onClose, onInvited }: { onClose: () => void; onInvited: 
                 <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Rol</label>
                 <select className="rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-lothar-yellow"
                   value={role} onChange={e => setRole(e.target.value)}>
-                  <option value="vendedor">Vendedor</option>
+                  <option value="vendedor">Vendedor / Asistente</option>
+                  <option value="jefe_area">Jefe de área</option>
                   <option value="administrador">Administrador</option>
                 </select>
               </div>
@@ -418,8 +424,10 @@ export function ConfiguracionModule() {
                       </div>
                     </div>
                     <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold
-                      ${p.role === "administrador" ? "bg-lothar-yellow text-lothar-black" : "bg-neutral-100 text-neutral-600"}`}>
-                      {p.role === "administrador" ? "Administrador" : "Vendedor"}
+                      ${p.role === "administrador" ? "bg-lothar-yellow text-lothar-black"
+                      : p.role === "jefe_area" ? "bg-blue-100 text-blue-700"
+                      : "bg-neutral-100 text-neutral-600"}`}>
+                      {p.role === "administrador" ? "Administrador" : p.role === "jefe_area" ? "Jefe de área" : "Vendedor"}
                     </span>
                     <span className="text-sm text-neutral-500">
                       {p.area_responsable
@@ -435,15 +443,15 @@ export function ConfiguracionModule() {
 
         {/* Info sobre permisos */}
         <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-5 space-y-3">
-          <h3 className="text-sm font-bold text-neutral-800">¿Cómo funcionan los permisos de tickets?</h3>
+          <h3 className="text-sm font-bold text-neutral-800">¿Cómo funcionan los permisos?</h3>
           <div className="space-y-2 text-sm text-neutral-600">
             <div className="flex gap-3">
               <span className="shrink-0 font-bold text-lothar-black">Todos</span>
               <span>pueden crear tickets para cualquier área.</span>
             </div>
             <div className="flex gap-3">
-              <span className="shrink-0 font-bold text-lothar-black">Responsable de área</span>
-              <span>ve y gestiona los tickets de su área + los tickets que él mismo creó.</span>
+              <span className="shrink-0 font-bold text-blue-700">Jefe de área</span>
+              <span>ve y gestiona los tickets de su área asignada.</span>
             </div>
             <div className="flex gap-3">
               <span className="shrink-0 font-bold text-lothar-black">Administrador</span>

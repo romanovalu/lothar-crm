@@ -233,12 +233,12 @@ export function TicketsModule() {
   }, []);
 
   const esAdmin = userRole === "administrador";
-  const esResponsable = !esAdmin && userAreaResponsable !== null;
+  const esJefeArea = userRole === "jefe_area" && userAreaResponsable !== null;
 
-  // Los tabs visibles: admin ve todo, responsable solo su área + sus tickets creados
+  // Tabs visibles según rol
   const tabsVisibles: { value: Tab; label: string }[] = esAdmin
     ? TABS
-    : esResponsable
+    : esJefeArea
       ? [
           { value: "todos" as Tab, label: "Mis solicitudes" },
           { value: userAreaResponsable as Tab, label: AREA_LABELS[userAreaResponsable!] },
@@ -431,7 +431,7 @@ export function TicketsModule() {
                   ticket={selected}
                   onClose={() => setSelected(null)}
                   onUpdated={() => { fetchTickets(); setSelected(null); }}
-                  canRespond={esAdmin || userAreaResponsable === selected.area}
+                  canRespond={esAdmin || esJefeArea && userAreaResponsable === selected.area}
                 />
               </div>
             ) : (
