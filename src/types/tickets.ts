@@ -1,4 +1,4 @@
-export type TicketArea = "compras" | "postventa" | "marketing" | "fabrica" | "administracion";
+export type TicketArea = "comercial" | "compras" | "postventa" | "marketing" | "fabrica" | "administracion";
 export type TicketEstado = "pendiente" | "en_proceso" | "resuelto" | "cancelado";
 export type TicketPrioridad = "critica" | "alta" | "media" | "baja";
 
@@ -26,6 +26,7 @@ export interface Ticket {
 }
 
 export const AREA_LABELS: Record<TicketArea, string> = {
+  comercial:      "Comercial",
   compras:        "Compras",
   postventa:      "Postventa",
   marketing:      "Marketing",
@@ -34,6 +35,7 @@ export const AREA_LABELS: Record<TicketArea, string> = {
 };
 
 export const AREA_EMOJI: Record<TicketArea, string> = {
+  comercial:      "💼",
   compras:        "🛒",
   postventa:      "🔧",
   marketing:      "📣",
@@ -71,6 +73,16 @@ export const PRIORIDAD_COLORS: Record<TicketPrioridad, string> = {
 
 /* Tipos de solicitud por área */
 export const TIPOS_POR_AREA: Record<TicketArea, string[]> = {
+  comercial: [
+    "Consulta de producto",
+    "Cotización",
+    "Seguimiento de operación",
+    "Pedido de documentación",
+    "Coordinación de entrega",
+    "Consulta de financiación",
+    "Posventa comercial",
+    "Otro",
+  ],
   compras: [
     "Compra de producto o insumo",
     "Compra de repuestos",

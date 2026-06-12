@@ -17,6 +17,7 @@ interface Profile {
 
 const AREAS_OPTIONS: { value: string; label: string }[] = [
   { value: "",               label: "— Sin área asignada —" },
+  { value: "comercial",      label: "💼 Comercial" },
   { value: "compras",        label: "🛒 Compras" },
   { value: "postventa",      label: "🔧 Postventa" },
   { value: "marketing",      label: "📣 Marketing" },
