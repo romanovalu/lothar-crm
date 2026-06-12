@@ -33,13 +33,12 @@ export default function RegisterPage() {
       return;
     }
 
-    // Crear perfil con aprobado = false
+    // Crear perfil con aprobado = false (via API route con service role, bypassa RLS)
     if (data.user) {
-      await supabase.from("profiles").upsert({
-        id: data.user.id,
-        nombre,
-        role: "vendedor",
-        aprobado: false,
+      await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: data.user.id, nombre }),
       });
     }
 
