@@ -117,7 +117,7 @@ function EditUserRow({
         )}
       </div>
 
-      {/* Área responsable */}
+      {/* Área */}
       <div className="w-full sm:w-auto sm:min-w-[160px] shrink-0">
         {editing ? (
           <select
@@ -130,11 +130,16 @@ function EditUserRow({
             ))}
           </select>
         ) : (
-          <span className="text-sm text-neutral-600">
-            {profile.area_responsable
-              ? AREAS_OPTIONS.find(o => o.value === profile.area_responsable)?.label ?? profile.area_responsable
-              : <span className="text-neutral-400">Sin área</span>}
-          </span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              {profile.role === "jefe_area" ? "Área responsable" : "Área"}
+            </span>
+            <span className="text-sm text-neutral-600">
+              {profile.area_responsable
+                ? AREAS_OPTIONS.find(o => o.value === profile.area_responsable)?.label ?? profile.area_responsable
+                : <span className="text-neutral-400">Sin área</span>}
+            </span>
+          </div>
         )}
       </div>
 
@@ -307,7 +312,7 @@ export function ConfiguracionModule() {
   }
 
   // Resumen de cobertura de áreas
-  const areasConResponsable = new Set(aprobados.map(p => p.area_responsable).filter(Boolean));
+  const areasConResponsable = new Set(aprobados.filter(p => p.role === "jefe_area").map(p => p.area_responsable).filter(Boolean));
   const areasSinCobertura = (Object.keys(AREA_LABELS) as TicketArea[]).filter(a => !areasConResponsable.has(a));
 
   return (
@@ -391,7 +396,7 @@ export function ConfiguracionModule() {
             <div className="hidden border-b border-neutral-100 bg-neutral-50 px-5 py-3 sm:grid sm:grid-cols-[1fr_140px_160px_100px] sm:gap-4">
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Usuario</span>
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Rol</span>
-              <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Área responsable</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Área</span>
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-400"></span>
             </div>
 
