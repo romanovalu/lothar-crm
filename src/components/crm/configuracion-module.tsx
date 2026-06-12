@@ -117,7 +117,7 @@ function EditUserRow({
       </div>
 
       {/* Área responsable */}
-      <div className="shrink-0 min-w-[160px]">
+      <div className="w-full sm:w-auto sm:min-w-[160px] shrink-0">
         {editing ? (
           <select
             className="w-full rounded-lg border border-neutral-200 px-3 py-1.5 text-sm outline-none focus:border-lothar-yellow"
@@ -200,8 +200,8 @@ function InvitarModal({ onClose, onInvited }: { onClose: () => void; onInvited: 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4 backdrop-blur-sm">
+      <div className="w-full rounded-t-2xl bg-white p-6 shadow-2xl sm:max-w-md sm:rounded-2xl">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-neutral-950">Invitar usuario</h2>
           <button onClick={onClose} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100"><X className="h-4 w-4" /></button>

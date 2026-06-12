@@ -41,8 +41,8 @@ function NuevoProductoModal({ onClose, onSaved }: { onClose: () => void; onSaved
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4">
+      <div className="w-full rounded-t-2xl bg-white shadow-2xl sm:max-w-lg sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4">
           <h2 className="text-lg font-bold text-neutral-950">Nuevo producto / máquina</h2>
           <button onClick={onClose} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100"><X className="h-4 w-4" /></button>
@@ -159,10 +159,10 @@ export function ProductosModule() {
             <Loader2 className="h-8 w-8 animate-spin text-neutral-300" />
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map(producto => (
               <Card key={producto.id} className="p-0 overflow-hidden hover:border-neutral-300 transition-colors">
-                <div className="flex h-40 items-center justify-center bg-neutral-50 border-b border-neutral-200">
+                <div className="flex h-32 sm:h-40 items-center justify-center bg-neutral-50 border-b border-neutral-200">
                   {producto.imagen ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={producto.imagen} alt={producto.modelo} className="h-full w-full object-cover" />

@@ -47,8 +47,8 @@ function NuevoClienteModal({ onClose, onSaved }: { onClose: () => void; onSaved:
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4">
+      <div className="w-full rounded-t-2xl bg-white shadow-2xl sm:max-w-lg sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4">
           <h2 className="text-lg font-bold text-neutral-950">Nuevo cliente</h2>
           <button onClick={onClose} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100"><X className="h-4 w-4" /></button>
@@ -185,7 +185,7 @@ export function ClientesModule() {
             <Loader2 className="h-8 w-8 animate-spin text-neutral-300" />
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map(cliente => (
               <Card key={cliente.id} className="p-5 hover:border-neutral-300 transition-colors cursor-pointer">
                 <div className="flex items-start justify-between gap-3">

@@ -259,8 +259,8 @@ export function NuevoTicketModal({ defaultArea, onClose, onCreated }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="flex h-full max-h-[88vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4 backdrop-blur-sm">
+      <div className="flex h-[95vh] max-h-[95vh] w-full flex-col rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:max-h-[88vh] sm:max-w-2xl sm:rounded-2xl">
 
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
@@ -371,7 +371,7 @@ export function NuevoTicketModal({ defaultArea, onClose, onCreated }: Props) {
             <div className="space-y-4">
               <Field label="Describa exactamente lo que necesita" required>
                 <Textarea value={descripcion} onChange={e => setDescripcion(e.target.value)}
-                  placeholder="Descripción detallada del pedido..." rows={4} />
+                  placeholder="Descripción detallada del pedido..." rows={3} />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Cantidad">
@@ -508,7 +508,7 @@ export function NuevoTicketModal({ defaultArea, onClose, onCreated }: Props) {
               </Field>
               <Field label="Descripción detallada" required>
                 <Textarea value={descripcion} onChange={e => setDescripcion(e.target.value)}
-                  placeholder="Explicá exactamente qué necesitás..." rows={4} />
+                  placeholder="Explicá exactamente qué necesitás..." rows={3} />
               </Field>
 
               {/* Campos extra por área */}

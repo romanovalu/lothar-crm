@@ -403,8 +403,8 @@ export function NuevaOperacionModal({ onClose, onCreated }: { onClose: () => voi
 
   /* ─── Render ─── */
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="flex h-full max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4 backdrop-blur-sm">
+      <div className="flex h-[95vh] max-h-[95vh] w-full flex-col rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-2xl">
 
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">

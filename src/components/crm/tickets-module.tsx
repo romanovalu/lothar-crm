@@ -332,7 +332,7 @@ export function TicketsModule() {
                 <button
                   key={area}
                   onClick={() => openNew(area)}
-                  className="flex items-center gap-3 rounded-xl border-2 border-neutral-200 bg-white p-4 text-left transition hover:border-lothar-yellow hover:bg-yellow-50"
+                  className="flex items-center gap-2 rounded-xl border-2 border-neutral-200 bg-white p-3 sm:p-4 text-left transition hover:border-lothar-yellow hover:bg-yellow-50"
                 >
                   <div className={`shrink-0 rounded-lg p-2 ${AREA_BG[area]}`}>
                     <Icon className="h-4 w-4" />
@@ -352,7 +352,7 @@ export function TicketsModule() {
         </div>
 
         {/* Tabs + lista */}
-        <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
+        <div className="grid gap-4 xl:grid-cols-[1fr_380px]">
           <div className="flex flex-col gap-4">
             {/* Tabs — solo los visibles para este usuario */}
             <div className="flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-neutral-50 p-1">
@@ -401,7 +401,7 @@ export function TicketsModule() {
                         <Icon className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <span className="font-mono text-xs font-semibold text-neutral-500">{t.numero_ticket}</span>
                           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${ESTADO_COLORS[t.estado]}`}>
                             {ESTADO_LABELS[t.estado]}

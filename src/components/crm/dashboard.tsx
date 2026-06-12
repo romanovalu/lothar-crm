@@ -108,7 +108,7 @@ export function Dashboard() {
           ) : (
             <>
               {/* Contadores por estado */}
-              <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <section className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                 {counts.map(item => (
                   <Card className="p-4" key={item.estado}>
                     <p className="text-xs font-semibold uppercase text-neutral-500">{item.estado}</p>

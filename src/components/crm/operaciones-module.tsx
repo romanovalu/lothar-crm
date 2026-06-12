@@ -97,7 +97,7 @@ export function OperacionesModule() {
             <Loader2 className="h-8 w-8 animate-spin text-neutral-300" />
           </div>
         ) : (
-          <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
+          <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
             {/* TABLA */}
             <Card className="p-0">
               <div className="overflow-x-auto">
